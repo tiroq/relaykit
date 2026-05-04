@@ -32,10 +32,29 @@ tasks:
     cmds:
       - go test -race ./... -timeout 120s
 
+  guard-no-app-imports:
+    desc: Fail if any Go source files reference chunkbridge or MAX-specific identifiers
+    cmds:
+      - |
+        found=$(grep -R --include="*.go" \
+          -e "github.com/tiroq/chunkbridge" \
+          -e "MaxTransport" \
+          -e "platform-api" \
+          -e "peer_chat_id" \
+          -e "/messages/poll" \
+          pkg/ 2>/dev/null || true)
+        if [ -n "$found" ]; then
+          echo "ERROR: app-specific references found in relaykit:"
+          echo "$found"
+          exit 1
+        fi
+        echo "guard-no-app-imports: OK"
+
   check:
-    desc: Run fmt-check, lint, test, and test-race
+    desc: Run fmt-check, lint, test, test-race, and guard-no-app-imports
     deps:
       - fmt-check
       - lint
       - test
       - test-race
+      - guard-no-app-imports
