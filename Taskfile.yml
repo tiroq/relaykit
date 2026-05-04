@@ -1,0 +1,41 @@
+version: "3"
+
+tasks:
+  fmt:
+    desc: Format all Go source files
+    cmds:
+      - go fmt ./...
+
+  fmt-check:
+    desc: Check that all Go source files are gofmt-clean (non-mutating)
+    cmds:
+      - |
+        unformatted=$(gofmt -l .)
+        if [ -n "$unformatted" ]; then
+          echo "The following files are not gofmt-clean:"
+          echo "$unformatted"
+          exit 1
+        fi
+
+  lint:
+    desc: Run go vet
+    cmds:
+      - go vet ./...
+
+  test:
+    desc: Run all tests
+    cmds:
+      - go test ./... -timeout 120s
+
+  test-race:
+    desc: Run all tests with race detector
+    cmds:
+      - go test -race ./... -timeout 120s
+
+  check:
+    desc: Run fmt-check, lint, test, and test-race
+    deps:
+      - fmt-check
+      - lint
+      - test
+      - test-race
